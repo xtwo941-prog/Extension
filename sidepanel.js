@@ -1,5 +1,5 @@
 // ============================================================
-// VibeX Academy - Lovable Extension - Side Panel Logic (Business Logic Only)
+// TechVai - Lovable Extension - Side Panel Logic (Business Logic Only)
 // Templates/HTML estao em sidepanel-templates.js
 // ============================================================
 
@@ -1548,7 +1548,7 @@
             const overlay = document.createElement('div');
             overlay.id = 'ql-shield-overlay';
             overlay.style.cssText = 'position:absolute;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border-radius:24px;background:rgba(10,10,11,0.88);backdrop-filter:blur(8px);border:1.5px solid rgba(168,85,247,0.35);box-shadow:0 0 40px -8px rgba(168,85,247,0.28);cursor:not-allowed;pointer-events:all;';
-            overlay.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 12px rgba(168,85,247,0.55))"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="color:#22D3EE;font-size:13px;font-weight:600;font-family:Inter,sans-serif">\ud83d\udee1\ufe0f Protected by VibeX Academy</span><span style="color:#bfc0c2;font-size:10px;font-family:Inter,sans-serif">Use the extension to send prompts</span>';
+            overlay.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 12px rgba(168,85,247,0.55))"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="color:#22D3EE;font-size:13px;font-weight:600;font-family:Inter,sans-serif">\ud83d\udee1\ufe0f Protected by TechVai</span><span style="color:#bfc0c2;font-size:10px;font-family:Inter,sans-serif">Use the extension to send prompts</span>';
             ['click','mousedown','keydown'].forEach(ev => overlay.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }, true));
             chatForm.appendChild(overlay);
             chatForm.querySelectorAll('input,button,textarea,[contenteditable]').forEach(el => {

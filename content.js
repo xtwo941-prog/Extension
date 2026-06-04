@@ -1,9 +1,9 @@
 // ============================================
-// VibeX Academy - Lovable Extension – Business Logic (content)
+// TechVai - Lovable Extension – Business Logic (content)
 // HTML templates are in content-templates.js
 // ============================================
 
-console.log("[ContentScript] VibeX Academy started");
+console.log("[ContentScript] TechVai started");
 
 function isChromeExtensionContextReady() {
   try {
@@ -1143,7 +1143,7 @@ function injectShieldOverlay(){
   overlay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' +
     '</svg>' +
-    '<span class="ql-shield-overlay-text">\ud83d\udee1\ufe0f Protected by VibeX Academy</span>' +
+    '<span class="ql-shield-overlay-text">\ud83d\udee1\ufe0f Protected by TechVai</span>' +
     '<span class="ql-shield-overlay-sub">Use the extension to send prompts</span>';
 
   overlay.addEventListener('click', (e) => {
@@ -1310,7 +1310,7 @@ async function showPaymentUI(box, preselectedPkg){
       var idx = parseInt(card.getAttribute("data-brl-idx"), 10) || 0;
       var plan = QL_BRL_PLANS[idx];
       if(!plan) return;
-      var msg = "Hello! 👋 I am interested in the *" + plan.name + "* plan from VibeX Academy - Lovable Extension (R$ " + plan.price + " - " + plan.period + ").\n\nI would like more information to complete the purchase. 🚀";
+      var msg = "Hello! I am interested in the *" + plan.name + "* plan from TechVai - Lovable Extension (R$ " + plan.price + " - " + plan.period + ").\n\nI would like more information to complete the purchase.";
       var url = "https://wa.me/8801889067101";
       window.open(url, "_blank", "noopener,noreferrer");
     });
@@ -2545,7 +2545,7 @@ function injectNativeChatOverlay() {
     badge = document.createElement("div");
     badge.id = "ql-native-badge";
     badge.className = "ql-native-badge";
-    badge.innerHTML = "\u26a1 <span>VibeX Academy - Lovable Extension</span>";
+    badge.innerHTML = "\u26a1 <span>TechVai - Lovable Extension</span>";
   }
   if (badge.parentElement !== chatForm) chatForm.appendChild(badge);
 
