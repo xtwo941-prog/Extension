@@ -4,14 +4,14 @@
 // ============================================================
 
 (function(){
-  const SUPABASE_URL = "https://ynvrijkuampxpsmshftm.supabase.co";
+  const SUPABASE_URL = "https://sedzeixvgbyicvlkrhrn.supabase.co";
   const VALIDATE_URL = SUPABASE_URL + "/functions/v1/validate-license";
   const OPTIMIZE_URL = SUPABASE_URL + "/functions/v1/optimize-prompt";
   const NOTIFICATIONS_URL = SUPABASE_URL + "/rest/v1/notifications?select=*&order=created_at.desc&limit=20";
   const VERSIONS_URL = SUPABASE_URL + "/rest/v1/extension_versions?select=version,changelog,file_path,is_alert_active&order=created_at.desc&limit=1&is_alert_active=eq.true";
   const USER_ROLES_URL = SUPABASE_URL + "/rest/v1/user_roles?select=role";
   const PROXY_COMMAND_URL = SUPABASE_URL + "/functions/v1/proxy-command";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InludnJpamt1YW1weHBzbXNoZnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDc1NjYsImV4cCI6MjA4OTc4MzU2Nn0.wFo3etz2hWmb8VCtadXRdqQAyCDaP2Li4Rs5kHLTdfM";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZHplaXh2Z2J5aWN2bGtyaHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzQxMjgsImV4cCI6MjA5NjE1MDEyOH0.kDoIGaITUYKxW6wjgJC03W-GTqNhcFWPI_reob-uoho";
 
   let sessionId = null, userName = null, expiresAt = null, licenseStatus = null, heartbeatInterval = null, deviceId = null, isResellerUser = false;
   let spSpeechRecognition = null, spIsRecording = false;
@@ -261,7 +261,9 @@
   // --- Reseller Role Check ---
   async function checkResellerRole() {
     try {
-      const data = await bgFetch(USER_ROLES_URL + "&user_id=eq." + (await getUserId()), { method: "GET", headers: { apikey: SUPABASE_ANON_KEY } });
+      const licKey = await getLicenseKey();
+      if (!licKey) return;
+      const data = await bgFetch(USER_ROLES_URL + "&license_key=eq." + encodeURIComponent(licKey), { method: "GET", headers: { apikey: SUPABASE_ANON_KEY } });
       if (data && Array.isArray(data) && data.some(r => r.role === 'reseller' || r.role === 'admin')) {
         isResellerUser = true;
         const btn = document.getElementById('sp-reseller-btn');
@@ -270,14 +272,9 @@
     } catch(e) {}
   }
 
-  async function getUserId() {
-    return new Promise(r => chrome.storage.local.get(["ql_license_key"], async res => {
-      if (!res.ql_license_key) return r('');
-      try {
-        const data = await bgFetch(SUPABASE_URL + "/rest/v1/licenses?select=user_id&license_key=eq." + encodeURIComponent(res.ql_license_key) + "&limit=1", { method: "GET", headers: { apikey: SUPABASE_ANON_KEY } });
-        if (data && data.length && data[0].user_id) r(data[0].user_id);
-        else r('');
-      } catch(e) { r(''); }
+  function getLicenseKey() {
+    return new Promise(r => chrome.storage.local.get(["ql_license_key"], res => {
+      r(res.ql_license_key || '');
     }));
   }
 
@@ -892,9 +889,9 @@
     overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
   }
 
-  var REMOVE_WATERMARK_URL = "https://ynvrijkuampxpsmshftm.supabase.co/functions/v1/remove-watermark";
-  var PUBLISH_PROJECT_URL = "https://ynvrijkuampxpsmshftm.supabase.co/functions/v1/publish-project";
-  var ENABLE_CLOUD_URL = "https://ynvrijkuampxpsmshftm.supabase.co/functions/v1/enable-cloud";
+  var REMOVE_WATERMARK_URL = SUPABASE_URL + "/functions/v1/remove-watermark";
+  var PUBLISH_PROJECT_URL = SUPABASE_URL + "/functions/v1/publish-project";
+  var ENABLE_CLOUD_URL = SUPABASE_URL + "/functions/v1/enable-cloud";
 
   function showSpPublishedUrlModal(url){
     var existing = document.getElementById("sp-publish-modal");
