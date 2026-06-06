@@ -138,15 +138,14 @@ function spTemplateUpdateBanner(version, changelog, dlUrl) {
   '</div>';
 }
 
-function spTemplateCorntdown(label, timeStr, pct, urgentClass) {
-  return '<div class="sp-corntdown-row">' +
-    '<span>\u23f3</span>' +
-    '<span class="sp-corntdown-label">' + label + '</span>' +
-    '<span class="sp-corntdown-time">' + timeStr + '</span>' +
-  '</div>' +
-  '<div class="sp-trial-bar">' +
-    '<div class="sp-trial-bar-fill' + urgentClass + '" style="width:' + pct + '%"></div>' +
-  '</div>';
+function spTemplateCountdown(label, timeStr, pct, urgentClass) {
+  return '<div style="font-size:11px;color:var(--ql-text-2);margin-bottom:6px">' + spEscapeHtml(label) + '</div>' +
+    '<div style="display:flex;align-items:center;gap:8px">' +
+      '<div style="flex:1;height:6px;border-radius:3px;background:rgba(168,85,247,0.15);overflow:hidden">' +
+        '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg, #a855f7, #ec4899);transition:width 1s linear' + urgentClass + '"></div>' +
+      '</div>' +
+      '<span style="font-weight:600;font-size:12px;color:var(--ql-accent)">' + spEscapeHtml(timeStr) + '</span>' +
+    '</div>';
 }
 
 function spTemplateAttachItem(f, index) {

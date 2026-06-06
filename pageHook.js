@@ -105,7 +105,18 @@ window.addEventListener("message", (event)=>{
 
       // Trigger send - look for send button
       setTimeout(() => {
-        const sendBtn = document.querySelector('button[aria-label*="send"], button[title*="send"], button:contains("Send")');
+        let sendBtn = document.querySelector('button[aria-label*="send"], button[title*="send"]');
+        if (!sendBtn) {
+          const allBtns = document.querySelectorAll('button');
+          for (let i = 0; i < allBtns.length; i++) {
+            const btn = allBtns[i];
+            const text = btn.textContent ? btn.textContent.toLowerCase().trim() : '';
+            if (text === 'send' || text.includes('send')) {
+              sendBtn = btn;
+              break;
+            }
+          }
+        }
         if(sendBtn){
           sendBtn.click();
           console.log('[QL] Prompt injected and sent');
