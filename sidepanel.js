@@ -1147,20 +1147,33 @@
       }
 
       const lovableTab = lovableTabs[0];
+
+      // Send message to inject prompt into Lovable
       const sendToLovable = await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error('Lovable tab did not respond. Ensure the page is fully loaded.'));
+        }, 5000);
+
         chrome.tabs.sendMessage(lovableTab.id, {
           action: 'injectPrompt',
           prompt: finalMsg,
           thinking: modoPlano,
           files: v1UploadedSp.map(f => ({ url: f.public_url, name: f.file_name }))
         }, (resp) => {
-          if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-          else resolve(resp);
+          clearTimeout(timeoutId);
+          if (chrome.runtime.lastError) {
+            console.warn('[SP] chrome.tabs.sendMessage error:', chrome.runtime.lastError.message);
+            reject(new Error('Could not reach Lovable tab: ' + chrome.runtime.lastError.message));
+          } else if (!resp) {
+            reject(new Error('No response from Lovable tab. Ensure page is fully loaded.'));
+          } else {
+            resolve(resp);
+          }
         });
       });
 
       if (!sendToLovable || !sendToLovable.ok) {
-        throw new Error('Failed to send prompt to Lovable. Ensure Lovable tab is loaded.');
+        throw new Error('Failed to inject prompt into Lovable. Ensure the page is fully loaded and try again.');
       }
 
       log.className = 'sp-log sp-log-success';

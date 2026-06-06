@@ -86,46 +86,127 @@ window.addEventListener("message", (event)=>{
       const thinking = event.data.thinking;
       const files = event.data.files || [];
 
-      // Find the prompt textarea and inject the message
-      const textarea = document.querySelector('textarea[placeholder*="command"], textarea[placeholder*="prompt"], textarea[placeholder*="ask"], textarea[placeholder*="message"]');
-      if(!textarea) { console.warn('[QL] Prompt textarea not found'); return; }
+      // Find textarea - try multiple selectors with increasing specificity
+      let textarea = null;
 
-      // Set the prompt text
-      textarea.value = prompt;
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-      textarea.dispatchEvent(new Event('change', { bubbles: true }));
-
-      // Set thinking mode if applicable
-      if(thinking){
-        const thinkCheckbox = document.querySelector('input[type="checkbox"][aria-label*="think"], input[type="checkbox"][title*="think"]');
-        if(thinkCheckbox && !thinkCheckbox.checked){
-          thinkCheckbox.click();
+      // Try direct input/textarea elements first
+      const allTextareas = document.querySelectorAll('textarea');
+      for (let i = 0; i < allTextareas.length; i++) {
+        const ta = allTextareas[i];
+        const visible = ta.offsetParent !== null;
+        if (visible && ta.offsetWidth > 100 && ta.offsetHeight > 30) {
+          textarea = ta;
+          break;
         }
       }
 
-      // Trigger send - look for send button
+      // Fallback: search by placeholder/class patterns
+      if (!textarea) {
+        textarea = document.querySelector('textarea[placeholder*="ask"], textarea[placeholder*="message"], textarea[placeholder*="prompt"], textarea[placeholder*="type"]');
+      }
+
+      if(!textarea) {
+        console.warn('[QL] Textarea not found. Available textareas:', document.querySelectorAll('textarea').length);
+        return;
+      }
+
+      console.log('[QL] Textarea found, injecting prompt');
+
+      // Set the prompt text using multiple methods for maximum compatibility
+      textarea.value = prompt;
+
+      // Trigger all necessary events for React/Vue/vanilla JS listeners
+      textarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+      textarea.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+      textarea.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
+      textarea.dispatchEvent(new Event('focus', { bubbles: true, cancelable: true }));
+
+      // For React apps, also trigger keyboard events
+      const inputEvent = new KeyboardEvent('keydown', {
+        key: 'a',
+        code: 'KeyA',
+        bubbles: true,
+        cancelable: true
+      });
+      textarea.dispatchEvent(inputEvent);
+
+      console.log('[QL] Prompt text set, value length:', textarea.value.length);
+
+      // Set thinking mode if applicable
+      if(thinking){
+        console.log('[QL] Setting thinking mode');
+        let thinkCheckbox = document.querySelector('input[type="checkbox"][aria-label*="think"], input[type="checkbox"][title*="think"]');
+
+        // Fallback: find by searching label text
+        if (!thinkCheckbox) {
+          const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+          for (let i = 0; i < checkboxes.length; i++) {
+            const cb = checkboxes[i];
+            const label = cb.parentElement?.textContent?.toLowerCase() || '';
+            if (label.includes('think') || label.includes('plan') || label.includes('mode')) {
+              thinkCheckbox = cb;
+              break;
+            }
+          }
+        }
+
+        if(thinkCheckbox && !thinkCheckbox.checked){
+          thinkCheckbox.click();
+          console.log('[QL] Thinking checkbox clicked');
+        }
+      }
+
+      // Trigger send - multiple strategies
       setTimeout(() => {
-        let sendBtn = document.querySelector('button[aria-label*="send"], button[title*="send"]');
+        console.log('[QL] Looking for send button');
+        let sendBtn = null;
+
+        // Strategy 1: aria-label or title attributes
+        sendBtn = document.querySelector('button[aria-label*="send"], button[title*="send"]');
+
+        // Strategy 2: Search by button position (send button usually on right side)
         if (!sendBtn) {
-          const allBtns = document.querySelectorAll('button');
-          for (let i = 0; i < allBtns.length; i++) {
-            const btn = allBtns[i];
-            const text = btn.textContent ? btn.textContent.toLowerCase().trim() : '';
-            if (text === 'send' || text.includes('send')) {
+          const buttons = document.querySelectorAll('button');
+          const rightMostX = Math.max(...Array.from(buttons).map(b => b.getBoundingClientRect().right));
+          for (let i = 0; i < buttons.length; i++) {
+            const btn = buttons[i];
+            const rect = btn.getBoundingClientRect();
+            const text = btn.textContent?.toLowerCase().trim() || '';
+
+            // Send button is usually on right, visible, and near the bottom
+            if (rect.right > rightMostX - 100 && rect.width > 30 && rect.height > 24 &&
+                (text === 'send' || text.includes('send') || text === '📤' || text === '⬆️')) {
               sendBtn = btn;
               break;
             }
           }
         }
-        if(sendBtn){
-          sendBtn.click();
-          console.log('[QL] Prompt injected and sent');
-        } else {
-          console.warn('[QL] Send button not found, user will need to click manually');
+
+        // Strategy 3: Fallback - any visible button with "send" text (case-insensitive)
+        if (!sendBtn) {
+          const allBtns = document.querySelectorAll('button');
+          for (let i = 0; i < allBtns.length; i++) {
+            const btn = allBtns[i];
+            const text = btn.textContent?.toLowerCase().trim() || '';
+            const isVisible = btn.offsetParent !== null && btn.offsetWidth > 0;
+            if (isVisible && (text === 'send' || text.includes('send message'))) {
+              sendBtn = btn;
+              break;
+            }
+          }
         }
-      }, 100);
+
+        if(sendBtn){
+          console.log('[QL] Send button found, clicking');
+          sendBtn.click();
+          console.log('[QL] Prompt injected and sent successfully');
+        } else {
+          console.warn('[QL] Send button not found after all strategies');
+        }
+      }, 150);
+
     } catch(e){
-      console.error('[QL] Failed to inject prompt:', e);
+      console.error('[QL] Failed to inject prompt:', e, e.stack);
     }
   }
 });
