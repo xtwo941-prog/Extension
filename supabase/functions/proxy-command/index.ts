@@ -68,72 +68,21 @@ Deno.serve(async (req: Request) => {
       .eq("flag_key", "optimize_prompt")
       .maybeSingle();
 
-    // Build headers for Lovable API
-    const lovableHeaders: Record<string, string> = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token_lovable}`,
-      ...(session_headers || {}),
-    };
-
-    if (browser_session_id) {
-      lovableHeaders["x-browser-session-id"] = browser_session_id;
-    }
-
-    // Build payload for Lovable
-    const lovablePayload: Record<string, unknown> = {
-      prompt: mensagem,
-      think: modo_pensar || false,
-    };
-
-    if (upload_files && Array.isArray(upload_files) && upload_files.length > 0) {
-      // Handle file uploads - pass them through
-      const uploadedUrls: string[] = [];
-      for (const file of upload_files) {
-        if (file.public_url) {
-          uploadedUrls.push(file.public_url);
-        } else if (file.file_data && file.file_name) {
-          // Upload to Supabase Storage
-          const fileBytes = Uint8Array.from(atob(file.file_data), c => c.charCodeAt(0));
-          const filePath = `uploads/${license_key}/${Date.now()}_${file.file_name}`;
-          const { data: uploadData } = await supabase.storage
-            .from("extension-uploads")
-            .upload(filePath, fileBytes, { contentType: file.file_type || "application/octet-stream", upsert: true });
-          if (uploadData) {
-            const { data: { publicUrl } } = supabase.storage.from("extension-uploads").getPublicUrl(filePath);
-            uploadedUrls.push(publicUrl);
-          }
-        }
-      }
-      if (uploadedUrls.length > 0) {
-        lovablePayload.images = uploadedUrls;
-      }
-    }
-
-    // Proxy to Lovable API
-    const lovableUrl = `https://api.lovable.dev/projects/${projeto_id}/messages`;
-    const lovableRes = await fetch(lovableUrl, {
-      method: "POST",
-      headers: lovableHeaders,
-      body: JSON.stringify(lovablePayload),
-    });
-
-    const lovableData = await lovableRes.json().catch(() => ({}));
-
-    if (!lovableRes.ok) {
-      return jsonRes({
-        success: false,
-        error_display: lovableData?.message || lovableData?.error || `Lovable API error (${lovableRes.status})`,
-        status: lovableRes.status,
-      });
-    }
-
     // Update last_seen_at
     await supabase
       .from("licenses")
       .update({ last_seen_at: new Date().toISOString() })
       .eq("license_key", license_key.trim());
 
-    return jsonRes({ success: true, data: lovableData, message: "Command sent successfully." });
+    // Just log and return success - actual API call happens client-side
+    // The extension handles Lovable API communication directly through lovable.dev cookies
+    return jsonRes({
+      success: true,
+      message: "Command validated and ready to send.",
+      projeto_id,
+      mensagem,
+      modo_pensar,
+    });
   } catch (err) {
     console.error("proxy-command error:", err);
     return jsonRes({ success: false, error_display: "Server error. Try again." }, 500);
