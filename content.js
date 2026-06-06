@@ -2884,13 +2884,21 @@ function clearNativeChatAttachments(){
 // ===== LISTENER PARA COMANDOS DO SIDEPANEL =====
 try {
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse){
-    if (!msg || !msg.type) return;
+    if (!msg || (!msg.type && !msg.action)) return;
     if (msg.type === 'ql_native_chat_activate') {
       try { activateNativeChat(); } catch(e) {}
       sendResponse && sendResponse({ ok: true });
     } else if (msg.type === 'ql_native_chat_deactivate') {
       try { deactivateNativeChat(); } catch(e) {}
       sendResponse && sendResponse({ ok: true });
+    } else if (msg.action === 'injectPrompt') {
+      try {
+        window.postMessage({ type: 'ql_inject_prompt', prompt: msg.prompt, thinking: msg.thinking, files: msg.files || [] }, '*');
+        sendResponse && sendResponse({ ok: true });
+      } catch(e) {
+        console.error('[QL] injectPrompt error:', e);
+        sendResponse && sendResponse({ ok: false, error: e.message });
+      }
     }
   });
 } catch(e) {}

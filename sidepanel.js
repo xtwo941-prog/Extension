@@ -1140,15 +1140,35 @@
         throw new Error(result.error_display || result.message || "Send error");
       }
 
-      const apiData = result.data || result;
-      const msgId = apiData.ai_message_id_usado || '';
+      // License validated - now send prompt to active Lovable tab
+      const lovableTabs = await new Promise(r => chrome.tabs.query({ url: '*://lovable.dev/*' }, r));
+      if (!lovableTabs || lovableTabs.length === 0) {
+        throw new Error('No active Lovable tab found. Open lovable.dev first.');
+      }
+
+      const lovableTab = lovableTabs[0];
+      const sendToLovable = await new Promise((resolve, reject) => {
+        chrome.tabs.sendMessage(lovableTab.id, {
+          action: 'injectPrompt',
+          prompt: finalMsg,
+          thinking: modoPlano,
+          files: v1UploadedSp.map(f => ({ url: f.public_url, name: f.file_name }))
+        }, (resp) => {
+          if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+          else resolve(resp);
+        });
+      });
+
+      if (!sendToLovable || !sendToLovable.ok) {
+        throw new Error('Failed to send prompt to Lovable. Ensure Lovable tab is loaded.');
+      }
+
       log.className = 'sp-log sp-log-success';
       if (hasImage) {
         log.textContent = '✓ Prompt sent! valid image 😁';
       } else {
         log.textContent = '\u2713 Prompt sent!';
       }
-      if (msgId) console.log('[QL] API message ID:', msgId);
 
       // Save to chat history
       addToHistory(msg, 'ok');

@@ -76,8 +76,47 @@ function notifyFound(token, projectId, browserSessionId, force = false){
 
 window.addEventListener("message", (event)=>{
   if(event.source !== window) return;
-  if(!event.data || event.data.type !== "lovableRequestToken") return;
-  notifyFound(capturedToken, getProjectFromPage() || capturedProjectId, capturedBrowserSessionId, true);
+  if(!event.data) return;
+
+  if(event.data.type === "lovableRequestToken"){
+    notifyFound(capturedToken, getProjectFromPage() || capturedProjectId, capturedBrowserSessionId, true);
+  } else if(event.data.type === "ql_inject_prompt"){
+    try {
+      const prompt = event.data.prompt;
+      const thinking = event.data.thinking;
+      const files = event.data.files || [];
+
+      // Find the prompt textarea and inject the message
+      const textarea = document.querySelector('textarea[placeholder*="command"], textarea[placeholder*="prompt"], textarea[placeholder*="ask"], textarea[placeholder*="message"]');
+      if(!textarea) { console.warn('[QL] Prompt textarea not found'); return; }
+
+      // Set the prompt text
+      textarea.value = prompt;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.dispatchEvent(new Event('change', { bubbles: true }));
+
+      // Set thinking mode if applicable
+      if(thinking){
+        const thinkCheckbox = document.querySelector('input[type="checkbox"][aria-label*="think"], input[type="checkbox"][title*="think"]');
+        if(thinkCheckbox && !thinkCheckbox.checked){
+          thinkCheckbox.click();
+        }
+      }
+
+      // Trigger send - look for send button
+      setTimeout(() => {
+        const sendBtn = document.querySelector('button[aria-label*="send"], button[title*="send"], button:contains("Send")');
+        if(sendBtn){
+          sendBtn.click();
+          console.log('[QL] Prompt injected and sent');
+        } else {
+          console.warn('[QL] Send button not found, user will need to click manually');
+        }
+      }, 100);
+    } catch(e){
+      console.error('[QL] Failed to inject prompt:', e);
+    }
+  }
 });
 
 (function wrapFetch(){

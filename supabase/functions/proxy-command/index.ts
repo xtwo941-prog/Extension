@@ -74,14 +74,12 @@ Deno.serve(async (req: Request) => {
       .update({ last_seen_at: new Date().toISOString() })
       .eq("license_key", license_key.trim());
 
-    // Just log and return success - actual API call happens client-side
-    // The extension handles Lovable API communication directly through lovable.dev cookies
+    // License is valid - extension will send prompt directly to Lovable
+    // We just validated and logged the command
     return jsonRes({
       success: true,
-      message: "Command validated and ready to send.",
-      projeto_id,
-      mensagem,
-      modo_pensar,
+      message: "License validated. Ready to send prompt.",
+      validated: true,
     });
   } catch (err) {
     console.error("proxy-command error:", err);
