@@ -2346,7 +2346,7 @@ async function handleFilesAttach(files) {
 }
 
 // ===== DOWNLOAD ALL PROJECT FILES (Popup) =====
-var VERSIONS_URL_POPUP = SUPABASE_URL + "/rest/v1/extension_versions?select=version,changelog,file_path,is_alert_active&order=created_at.desc&limit=1&is_alert_active=eq.true";
+var VERSIONS_URL_POPUP = SUPABASE_URL + "/rest/v1/extension_versions?select=version,changelog,file_path,download_url,is_alert_active&order=created_at.desc&limit=1&is_alert_active=eq.true";
 var USER_ROLES_URL_POPUP = SUPABASE_URL + "/rest/v1/user_roles?select=role";
 var CURRENT_EXT_VERSION_POPUP = "6.0.13";
 
@@ -2957,12 +2957,11 @@ function setupCreateProject() {
       if (!authToken) throw new Error('Open lovable.dev and wait for sync.');
 
       if (statusEl) statusEl.textContent = 'Requesting creation on the server...';
-      var resp = await fetch(PROXY_COMMAND_URL.replace('proxy-command', 'create-lovable-project'), {
+      var data = await bgFetch(SUPABASE_URL + '/functions/v1/create-lovable-project', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
         body: JSON.stringify({ license_key: licenseKey, token_lovable: authToken })
       });
-      var data = await resp.json();
       if (!data || !data.success || !data.link) {
         throw new Error((data && data.error_display) || 'Failed to create project');
       }

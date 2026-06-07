@@ -8,7 +8,7 @@
   const VALIDATE_URL = SUPABASE_URL + "/functions/v1/validate-license";
   const OPTIMIZE_URL = SUPABASE_URL + "/functions/v1/optimize-prompt";
   const NOTIFICATIONS_URL = SUPABASE_URL + "/rest/v1/notifications?select=*&order=created_at.desc&limit=20";
-  const VERSIONS_URL = SUPABASE_URL + "/rest/v1/extension_versions?select=version,changelog,file_path,is_alert_active&order=created_at.desc&limit=1&is_alert_active=eq.true";
+  const VERSIONS_URL = SUPABASE_URL + "/rest/v1/extension_versions?select=version,changelog,file_path,download_url,is_alert_active&order=created_at.desc&limit=1&is_alert_active=eq.true";
   const USER_ROLES_URL = SUPABASE_URL + "/rest/v1/user_roles?select=role";
   const PROXY_COMMAND_URL = SUPABASE_URL + "/functions/v1/proxy-command";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZHplaXh2Z2J5aWN2bGtyaHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzQxMjgsImV4cCI6MjA5NjE1MDEyOH0.kDoIGaITUYKxW6wjgJC03W-GTqNhcFWPI_reob-uoho";
@@ -1356,11 +1356,9 @@
       try {
         // ---- Feature flag gate ----
         try {
-          var flagUrl = SUPABASE_URL + "/rest/v1/feature_flags?select=enabled&flag_key=eq.download_files";
-          var flagResp = await fetch(flagUrl, { method: "GET", headers: { apikey: SUPABASE_ANON_KEY } });
-          if (flagResp.ok) {
-            var flagRows = await flagResp.json();
-            if (flagRows && flagRows.length > 0 && flagRows[0].enabled === false) {
+          var flagUrl = SUPABASE_URL + "/rest/v1/feature_flags?select=is_enabled&flag_key=eq.download_files";
+          var flagRows = await bgFetch(flagUrl, { method: "GET", headers: { apikey: SUPABASE_ANON_KEY } });
+          if (flagRows && flagRows.length > 0 && flagRows[0].is_enabled === false) {
               throw new Error('Error using extension features.');
             }
           }
@@ -1400,9 +1398,7 @@
           }
         }
 
-        if (!authToken) {
         if (!authToken) throw new Error('Open lovable.dev in another tab and wait for sync.');
-        }
 
         // Download project
         if (statusEl) { statusEl.textContent = '\ud83d\udce1 Downloading project files...'; }
@@ -1698,12 +1694,11 @@
         if (!authToken) throw new Error('Open lovable.dev in another tab and wait for sync.');
 
         if (statusEl) statusEl.textContent = 'Requesting creation on the server...';
-        var resp = await fetch(SUPABASE_URL + '/functions/v1/create-lovable-project', {
+        var data = await bgFetch(SUPABASE_URL + '/functions/v1/create-lovable-project', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
           body: JSON.stringify({ license_key: licenseKey, token_lovable: authToken })
         });
-        var data = await resp.json();
         if (!data || !data.success || !data.link) {
           throw new Error((data && data.error_display) || 'Failed to create project');
         }
