@@ -60,7 +60,7 @@ function spTemplateMainUI(greeting, statusBadge) {
     '<div class="sp-profile-card">' +
       '<div class="sp-profile-top"><span class="sp-profile-name" id="sp-name">' + greeting + '</span>' + statusBadge + '</div>' +
       '<div class="sp-sync-status" id="sp-sync">\u23f3 Waiting for sync...</div>' +
-      '<div class="sp-trial-corntdown" id="sp-corntdown" style="display:none"></div>' +
+      '<div class="sp-trial-countdown" id="sp-countdown" style="display:none"></div>' +
     '</div>' +
     '<div id="sp-reseller-btn" style="display:none;margin-bottom:14px">' +
       '<a href="https://wa.me/8801889067101" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px solid rgba(168,85,247,0.3);background:rgba(168,85,247,0.06);color:var(--ql-accent);text-decoration:none;font-size:12px;font-weight:700;transition:all 0.2s">' +
